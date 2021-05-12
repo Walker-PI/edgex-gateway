@@ -1,0 +1,7 @@
+2021-05-12T19:27:37.798+0800	ERROR	logger/logger.go:138	[EnableDiscovery] consul register failed: err=Put "http://:0/v1/agent/service/register": dial tcp :0: connect: can't assign requested address
+2021-05-12T19:29:37.703+0800	ERROR	logger/logger.go:138	[EnableDiscovery] consul register failed: err=Put "http://:0/v1/agent/service/register": dial tcp :0: connect: can't assign requested address
+2021-05-12T19:34:08.564+0800	ERROR	logger/logger.go:138	[EnableDiscovery] consul register failed: err=Put "http://:0/v1/agent/service/register": dial tcp :0: connect: can't assign requested address
+2021-05-12T19:37:19.342+0800	ERROR	logger/logger.go:138	[EnableDiscovery] consul register failed: err=Put "http://:0/v1/agent/service/register": dial tcp :0: connect: can't assign requested address
+2021-05-12T19:52:17.732+0800	ERROR	logger/logger.go:138	[EnableDiscovery] consul register failed: err=Put "http://:0/v1/agent/service/register": dial tcp :0: connect: can't assign requested address
+2021-05-12T20:02:08.714+0800	ERROR	logger/logger.go:138	[EnableDiscovery] consul register failed: err=Put "http://:0/v1/agent/service/register": dial tcp :0: connect: can't assign requested address
+2021-05-12T20:10:56.435+0800	ERROR	logger/logger.go:138	[EnableDiscovery] consul register failed: err=Put "http://:0/v1/agent/service/register": dial tcp :0: connect: can't assign requested address
