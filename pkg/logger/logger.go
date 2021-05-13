@@ -55,10 +55,13 @@ func setLogConfig() {
 		zap.NewAtomicLevelAt(logLevel),
 	)
 
-	caller := zap.AddCaller()                    // 开启文件及行号
-	development := zap.Development()             // 开启开发模式，堆栈跟踪
-	logger := zap.New(core, caller, development) // 构造日志
-	zap.ReplaceGlobals(logger)                   // 将自定义的logger替换为全局的logger
+	zap.NewProduction()
+
+	caller := zap.AddCaller() // 开启文件及行号
+	skip := zap.AddCallerSkip(1)
+	development := zap.Development()                   // 开启开发模式，堆栈跟踪
+	logger := zap.New(core, caller, skip, development) // 构造日志
+	zap.ReplaceGlobals(logger)                         // 将自定义的logger替换为全局的logger
 	defaultLogger = zap.L()
 }
 

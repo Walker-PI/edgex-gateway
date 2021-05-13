@@ -1,16 +1,24 @@
 package agw_context
 
-import "net/http"
+import (
+	"context"
+	"net/http"
+)
 
 type AGWContext struct {
-	Writer   http.ResponseWriter
-	Request  *http.Request
-	Response *http.Response
+	ResponseWriter http.ResponseWriter
+	OriginRequest  *http.Request
+	ForwardRequest *http.Request
 }
 
-func NewAGWContext(w http.ResponseWriter, r *http.Request) *AGWContext {
+func NewAGWContext(writer http.ResponseWriter, req *http.Request) *AGWContext {
 	return &AGWContext{
-		Request: r,
-		Writer:  w,
+		ResponseWriter: writer,
+		OriginRequest:  req,
+		ForwardRequest: copyRequest(req),
 	}
+}
+
+func copyRequest(req *http.Request) *http.Request {
+	return req.Clone(context.Background())
 }

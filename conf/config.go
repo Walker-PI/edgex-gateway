@@ -1,7 +1,6 @@
 package conf
 
 import (
-	"fmt"
 	"log"
 	"path/filepath"
 
@@ -36,9 +35,9 @@ type RedisConfig struct {
 }
 
 type Service struct {
-	RunMode  string
-	HTTPPort int
-	Port     string
+	Host          string
+	Port          int
+	ListenAddress string
 }
 
 type Database struct {
@@ -51,13 +50,10 @@ type Database struct {
 }
 
 type ConsulConfig struct {
-	ConsulAddress  string
-	ConsulPort     int
-	ServiceName    string
-	ServiceAddress string
-	ServicePort    int
-	CheckAddress   string
-	CheckInterval  string
+	ConsulAddress string
+	ServiceName   string
+	CheckTimeout  string
+	CheckInterval string
 }
 
 func LoadConfig(confFilePath string) {
@@ -81,11 +77,7 @@ func LoadConfig(confFilePath string) {
 	mapTo("Database", DBConf, cfg)
 	mapTo("Redis", RedisConf, cfg)
 	mapTo("Server", Server, cfg)
-	mapTo("Consul", ConsulConf, cfg)
-
-	if Server.HTTPPort != 0 {
-		Server.Port = fmt.Sprintf(":%d", Server.HTTPPort)
-	}
+	mapTo("ConsulConfig", ConsulConf, cfg)
 }
 
 func mapTo(section string, v interface{}, cfg *ini.File) {

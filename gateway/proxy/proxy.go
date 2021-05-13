@@ -2,68 +2,70 @@ package proxy
 
 import (
 	"net/http"
+	"net/http/httputil"
+	"net/url"
+	"time"
 
 	"github.com/Walker-PI/edgex-gateway/gateway/agw_context"
+	"github.com/Walker-PI/edgex-gateway/gateway/filter"
+	// "github.com/Walker-PI/edgex-gateway/pkg/logger"
 )
 
-type ProxyHandler struct {
+type Proxy struct {
+	StartTime      time.Time
+	EndTime        time.Time
+	Ctx            *agw_context.AGWContext
+	Filters        map[string][]*filter.Filter
+	Director       func(req *http.Request)
+	ModifyResponse func(*http.Response) error
+	ErrorHandler   func(http.ResponseWriter, *http.Request, error)
 }
 
-func (p *ProxyHandler) Handle(w http.ResponseWriter, r *http.Request) {
-	ctx := agw_context.NewAGWContext(w, r)
-
-	// Pre获取路由信息 装饰
-
-	p.proxyHTTP(ctx)
+func NewProxy(ctx *agw_context.AGWContext) *Proxy {
+	proxy := &Proxy{
+		StartTime: time.Now(),
+		Ctx:       ctx,
+	}
+	proxy.initFilters()
+	return proxy
 }
 
-// 反向代理http协议
-func (p *ProxyHandler) proxyHTTP(ctx *agw_context.AGWContext) {
-	// // 匹配路由
-	// path := ctx.Request.URL.Path
-	// remoteUrl, route, err := router.Match(path)
-	// if err != nil {
-	// 	logger.Error("route is: ", route, ", error is:", err)
-	// 	return response.NewError(response.ProxyUrlNotFound, err.Error())
-	// }
-	// ctx.RemoteURL = remoteUrl
-
-	// // 创建代理对象
-	// proxy := &httputil.ReverseProxy{
-	// 	Director: func(req *http.Request) {
-	// 		// FIXME: 放在pre filter-decoration里处理
-	// 		req.Host = remoteUrl.Host
-	// 		req.URL.Scheme = remoteUrl.Scheme
-	// 		req.URL.Host = remoteUrl.Host
-	// 		req.URL.Path = remoteUrl.Path
-
-	// 		if ctx.Request.URL.RawQuery == "" || req.URL.RawQuery == "" {
-	// 			req.URL.RawQuery = ctx.Request.URL.RawQuery + req.URL.RawQuery
-	// 		} else {
-	// 			req.URL.RawQuery = ctx.Request.URL.RawQuery + "&" + req.URL.RawQuery
-	// 		}
-	// 		ctx.Request = req
-	// 		logger.Debug("director: ", remoteUrl.String())
-	// 	},
-	// 	ModifyResponse: func(resp *http.Response) error {
-	// 		logger.Debug("modify response:", remoteUrl.String())
-	// 		ctx.Response = resp
-	// 		err := filter.BeforeResponseFilter(ctx)
-	// 		if err != nil {
-	// 			logger.Info("BeforeResponse Stop")
-	// 		}
-	// 		return nil
-	// 	},
-	// 	ErrorHandler: r.ErrorHandler,
-	// 	Transport:    defaultGatewayTransport.GetTransport(route),
-	// }
-
-	// proxy.ServeHTTP(ctx.ResponseWriter, ctx.Request)
-
-	// logger.Info("请求完成, 请求地址：", path, "，目标地址：", remoteUrl)
+func (p *Proxy) initFilters() {
+	// TODO:
 }
 
-// TODO：转换gRpc协议
-// func (p *ProxyHandler) proxyGRPC() {
+func (p *Proxy) buildDirector() {
+	origin, _ := url.Parse("http://106.14.157.113:6789")
+	p.Director = func(req *http.Request) {
+		req.Header.Add("X-Forwarded-Host", req.Host)
+		req.Header.Add("X-Origin-Host", origin.Host)
+		req.Host = origin.Host
+		req.URL.Scheme = origin.Scheme
+		req.URL.Host = origin.Host
+		req.URL.Path = p.Ctx.OriginRequest.URL.Path
 
-// }
+		if p.Ctx.OriginRequest.URL.RawQuery == "" || req.URL.RawQuery == "" {
+			req.URL.RawQuery = p.Ctx.OriginRequest.URL.RawQuery + req.URL.RawQuery
+		} else {
+			req.URL.RawQuery = p.Ctx.OriginRequest.URL.RawQuery + "&" + req.URL.RawQuery
+		}
+		p.Ctx.ForwardRequest = req
+	}
+}
+
+func (p *Proxy) buildModifyResponse() {
+	// TODO:
+}
+
+func (p *Proxy) buildErrorHandler() {
+	// TODO:
+}
+
+func (p *Proxy) ServeHTTP() {
+	proxy := &httputil.ReverseProxy{
+		Director:       p.Director,
+		ModifyResponse: p.ModifyResponse,
+		ErrorHandler:   p.ErrorHandler,
+	}
+	proxy.ServeHTTP(p.Ctx.ResponseWriter, p.Ctx.ForwardRequest)
+}
