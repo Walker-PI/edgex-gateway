@@ -23,7 +23,7 @@ func (c LoginClaims) Valid() error {
 	return c.Claims.Valid()
 }
 
-func GenerateToken(userID int64, role int, expireDuration time.Duration) (string, error) {
+func GenerateToken(userID int64, expireDuration time.Duration) (string, error) {
 	expire := time.Now().Add(expireDuration)
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, LoginClaims{
 		UserID: userID,
