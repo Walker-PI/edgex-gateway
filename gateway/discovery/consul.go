@@ -1,23 +1,34 @@
 package discovery
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/Walker-PI/edgex-gateway/conf"
+	"github.com/Walker-PI/edgex-gateway/gateway/agw_context"
+	"github.com/Walker-PI/edgex-gateway/gateway/lb"
 	"github.com/Walker-PI/edgex-gateway/pkg/logger"
 	consulapi "github.com/hashicorp/consul/api"
+	uuid "github.com/satori/go.uuid"
 )
 
-func EnableDiscovery(_type string) {
+var consulClient *consulapi.Client
 
+func initCousulClient() {
+	var err error
 	config := consulapi.DefaultConfig()
 	config.Address = conf.ConsulConf.ConsulAddress
-	consul, err := consulapi.NewClient(config)
+	consulClient, err = consulapi.NewClient(config)
 	if err != nil {
 		logger.Error("[EnableDiscovery] new consul client failed: config=%+v, err=%v", config, err)
-		return
+		panic(err)
 	}
+}
+
+func EnableDiscovery() {
+	initCousulClient()
 	registration := &consulapi.AgentServiceRegistration{
+		ID:      conf.ConsulConf.ServiceName + "-" + uuid.NewV4().String(),
 		Name:    conf.ConsulConf.ServiceName,
 		Port:    conf.Server.Port,
 		Address: conf.Server.Host,
@@ -29,33 +40,26 @@ func EnableDiscovery(_type string) {
 		},
 	}
 	// Register the Service
-	err = consul.Agent().ServiceRegister(registration)
+	err := consulClient.Agent().ServiceRegister(registration)
 	if err != nil {
 		logger.Error("[EnableDiscovery] consul register failed: err=%v", err)
-		return
+		panic(err)
 	}
 }
 
-func ConsulDiscovery(serviceName string) {
-	// // 创建连接consul服务配置
-	// config := consulapi.DefaultConfig()
-	// config.Address = conf.ConsulConf.ConsulAddress
-	// client, err := consulapi.NewClient(config)
-	// if err != nil {
-	// 	logger.Error("[EnableDiscovery] new consul client failed: config=%+v, err=%v", config, err)
-	// 	return
-	// }
+func GetInstance(ctx *agw_context.AGWContext, serviceName string, lbType string) (*consulapi.CatalogService, error) {
+	if serviceName == "" {
+		return nil, errors.New("service_name is empty")
+	}
+	serviceList, _, err := consulClient.Catalog().Service(serviceName, "", nil)
+	if err != nil {
+		return nil, err
+	}
 
-	// serviceList, queryMeta, err := client.Catalog().Service(serviceName, "", nil)
-	// if err != nil {
-	// 	logger.Error("[ConsulDiscovery] ")
-	// }
-	//  queryMeta.
-	// // 获取指定service
-	// service, _, err := client.Agent().Service("337", nil)
-	// if err == nil {
-	// 	fmt.Println(service.Address)
-	// 	fmt.Println(service.Port)
-	// }
-
+	// 负载均衡
+	balance, err := lb.NewLoadBalance(ctx, lbType)
+	if err != nil {
+		return nil, err
+	}
+	return balance.Select(serviceList), nil
 }

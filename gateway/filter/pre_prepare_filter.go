@@ -13,21 +13,24 @@ func newPrepareFilter() Filter {
 	return &PrepareFilter{}
 }
 
-func (f *PrepareFilter) Init(configFile string) error {
-	return f.baseFilter.Init(configFile)
-}
-
-func (f *PrepareFilter) Type() FilterType {
+func (f *PrepareFilter) Name() FilterName {
 	return PrePrepareFilter
 }
 
+func (f *PrepareFilter) Type() FilterType {
+	return PreFilter
+}
+
+func (f *PrepareFilter) Priority() int {
+	return priority[PrePrepareFilter]
+}
+
 func (f *PrepareFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
-	realIP := tools.ClientPublicIP(ctx.OriginRequest)
-	if realIP == "" {
-		realIP = tools.ClientIP(ctx.OriginRequest)
-	}
-	if realIP == "" {
-		realIP = tools.RemoteIP(ctx.OriginRequest)
-	}
+	realIP := tools.RealIP(ctx.ForwardRequest)
+	ctx.Set("Real-IP", realIP)
+
+	ctx.ForwardRequest.Header.Set("X-Forwarded-For", realIP)
+	ctx.ForwardRequest.Header.Set("X-Real-IP", realIP)
+
 	return f.baseFilter.Run(ctx)
 }

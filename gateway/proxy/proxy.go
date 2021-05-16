@@ -1,71 +1,115 @@
 package proxy
 
 import (
+	"fmt"
+	"net"
 	"net/http"
 	"net/http/httputil"
-	"net/url"
+	"sort"
 	"time"
 
 	"github.com/Walker-PI/edgex-gateway/gateway/agw_context"
 	"github.com/Walker-PI/edgex-gateway/gateway/filter"
-	// "github.com/Walker-PI/edgex-gateway/pkg/logger"
+	"github.com/Walker-PI/edgex-gateway/gateway/router"
 )
 
 type Proxy struct {
-	StartTime      time.Time
-	EndTime        time.Time
-	Ctx            *agw_context.AGWContext
-	Filters        map[string][]*filter.Filter
-	Director       func(req *http.Request)
-	ModifyResponse func(*http.Response) error
-	ErrorHandler   func(http.ResponseWriter, *http.Request, error)
+	StartTime time.Time
+	Ctx       *agw_context.AGWContext
+	Filters   []filter.Filter
 }
 
-func NewProxy(ctx *agw_context.AGWContext) *Proxy {
+func NewProxy(w http.ResponseWriter, r *http.Request) *Proxy {
 	proxy := &Proxy{
 		StartTime: time.Now(),
-		Ctx:       ctx,
+		Ctx:       agw_context.NewAGWContext(w, r),
 	}
 	proxy.initFilters()
 	return proxy
 }
 
 func (p *Proxy) initFilters() {
-	// TODO:
+	p.Filters = make([]filter.Filter, 0)
+	p.Filters = append(p.Filters,
+		filter.NewFilter(filter.PrePrepareFilter),
+		filter.NewFilter(filter.PreHeadersFilter_),
+		filter.NewFilter(filter.PreIPWhiteFilter),
+		filter.NewFilter(filter.PreIPBlackFilter),
+		filter.NewFilter(filter.PreAuthFilter),
+		filter.NewFilter(filter.PreRateLimitFilter),
+		filter.NewFilter(filter.PostHeadersFilter_),
+	)
+	sort.SliceStable(p.Filters, func(i, j int) bool {
+		return p.Filters[i].Priority() < p.Filters[j].Priority()
+	})
 }
 
-func (p *Proxy) buildDirector() {
-	origin, _ := url.Parse("http://106.14.157.113:6789")
-	p.Director = func(req *http.Request) {
-		req.Header.Add("X-Forwarded-Host", req.Host)
-		req.Header.Add("X-Origin-Host", origin.Host)
-		req.Host = origin.Host
-		req.URL.Scheme = origin.Scheme
-		req.URL.Host = origin.Host
-		req.URL.Path = p.Ctx.OriginRequest.URL.Path
-
-		if p.Ctx.OriginRequest.URL.RawQuery == "" || req.URL.RawQuery == "" {
-			req.URL.RawQuery = p.Ctx.OriginRequest.URL.RawQuery + req.URL.RawQuery
-		} else {
-			req.URL.RawQuery = p.Ctx.OriginRequest.URL.RawQuery + "&" + req.URL.RawQuery
+func (p *Proxy) DoPreFilters() (statusCode int, err error) {
+	for _, v := range p.Filters {
+		if v.Type() == filter.PreFilter {
+			statusCode, err = v.Run(p.Ctx)
+			if err != nil || statusCode != http.StatusOK {
+				return
+			}
 		}
-		p.Ctx.ForwardRequest = req
 	}
+	return http.StatusOK, nil
 }
 
-func (p *Proxy) buildModifyResponse() {
-	// TODO:
+func (p *Proxy) DoPostFilters() (statusCode int, err error) {
+	for _, v := range p.Filters {
+		if v.Type() == filter.PostFilter {
+			statusCode, err = v.Run(p.Ctx)
+			if err != nil || statusCode != http.StatusOK {
+				return
+			}
+		}
+	}
+	return http.StatusOK, nil
 }
 
-func (p *Proxy) buildErrorHandler() {
-	// TODO:
-}
+func (p *Proxy) DoProxy(director func(*http.Request), modifyResponse func(*http.Response) error,
+	errorHandler func(http.ResponseWriter, *http.Request, error)) {
 
-func (p *Proxy) ServeHTTP() {
+	// 超时时间
+	timeout := 30 * time.Second
+	if p.Ctx.RouteDetail.Target.Timeout > 0 {
+		timeout = p.Ctx.RouteDetail.Target.Timeout * time.Millisecond
+	}
 	proxy := &httputil.ReverseProxy{
-		Director:       p.Director,
-		ModifyResponse: p.ModifyResponse,
-		ErrorHandler:   p.ErrorHandler,
+		Director:       director,
+		ModifyResponse: modifyResponse,
+		ErrorHandler:   errorHandler,
+		Transport: &http.Transport{
+			Proxy: http.ProxyFromEnvironment,
+			DialContext: (&net.Dialer{
+				Timeout:   timeout,
+				KeepAlive: 30 * time.Second,
+			}).DialContext,
+			ForceAttemptHTTP2:     true,
+			MaxIdleConns:          100,
+			IdleConnTimeout:       90 * time.Second,
+			TLSHandshakeTimeout:   10 * time.Second,
+			ExpectContinueTimeout: 1 * time.Second,
+		},
 	}
 	proxy.ServeHTTP(p.Ctx.ResponseWriter, p.Ctx.ForwardRequest)
+}
+
+func (p *Proxy) MatchRoute() bool {
+	route := router.DefaultRouter()
+	p.Ctx.RouteDetail, p.Ctx.ParamsMap = route.Match(p.Ctx.OriginRequest.Method, p.Ctx.OriginRequest.URL.Path)
+	return p.Ctx.RouteDetail != nil
+}
+
+func (p *Proxy) ErrorHandle(w http.ResponseWriter, statusCode int) {
+	status := fmt.Sprintf("%d %s", statusCode, http.StatusText(statusCode))
+	p.Ctx.Response = &http.Response{
+		Status:     status,
+		StatusCode: statusCode,
+	}
+	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.WriteHeader(statusCode)
+	fmt.Fprintln(w, status)
 }

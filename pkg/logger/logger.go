@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"log"
 	"os"
 
 	"github.com/Walker-PI/edgex-gateway/conf"
@@ -21,6 +22,8 @@ func InitLogs() {
 		logLevel = zapcore.InfoLevel
 	}
 	setLogConfig()
+
+	log.Println("Edgex-gateway logger initialized!")
 }
 
 func setLogConfig() {

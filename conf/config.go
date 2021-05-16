@@ -78,6 +78,8 @@ func LoadConfig(confFilePath string) {
 	mapTo("Redis", RedisConf, cfg)
 	mapTo("Server", Server, cfg)
 	mapTo("ConsulConfig", ConsulConf, cfg)
+
+	log.Println("Edgex-gateway config load finished!")
 }
 
 func mapTo(section string, v interface{}, cfg *ini.File) {

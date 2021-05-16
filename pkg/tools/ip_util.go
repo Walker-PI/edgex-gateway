@@ -32,6 +32,17 @@ func init() {
 	)
 }
 
+func RealIP(r *http.Request) string {
+	realIP := ClientPublicIP(r)
+	if realIP == "" {
+		realIP = ClientIP(r)
+	}
+	if realIP == "" {
+		realIP = RemoteIP(r)
+	}
+	return realIP
+}
+
 // ClientIP 尽最大努力实现获取客户端 IP 的算法。
 // 解析 X-Real-IP 和 X-Forwarded-For 以便于反向代理（nginx 或 haproxy）可以正常工作。
 func ClientIP(r *http.Request) string {
@@ -69,7 +80,6 @@ func ClientPublicIP(r *http.Request) string {
 			return ip
 		}
 	}
-
 	return ""
 }
 
