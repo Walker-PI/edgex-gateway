@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/Walker-PI/edgex-gateway/gateway/agw_context"
-	"github.com/Walker-PI/edgex-gateway/pkg/tools"
+	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
+	"github.com/Walker-PI/iot-gateway/pkg/tools"
 	"github.com/dgrijalva/jwt-go"
 )
 

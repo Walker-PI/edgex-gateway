@@ -1,6 +1,6 @@
 #!/bin/bash
 
-RUN_NAME="edgex-gateway"
+RUN_NAME="iot-gateway"
 
 export GO111MODULE=on
 go mod download

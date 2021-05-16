@@ -8,9 +8,9 @@ import (
 	"sort"
 	"time"
 
-	"github.com/Walker-PI/edgex-gateway/gateway/agw_context"
-	"github.com/Walker-PI/edgex-gateway/gateway/filter"
-	"github.com/Walker-PI/edgex-gateway/gateway/router"
+	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
+	"github.com/Walker-PI/iot-gateway/gateway/filter"
+	"github.com/Walker-PI/iot-gateway/gateway/router"
 )
 
 type Proxy struct {

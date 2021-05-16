@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/Walker-PI/edgex-gateway/conf"
+	"github.com/Walker-PI/iot-gateway/conf"
 	"github.com/natefinch/lumberjack"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"

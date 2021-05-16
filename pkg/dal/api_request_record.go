@@ -3,7 +3,7 @@ package dal
 import (
 	"time"
 
-	"github.com/Walker-PI/edgex-gateway/pkg/logger"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
 	"gorm.io/gorm"
 )
 

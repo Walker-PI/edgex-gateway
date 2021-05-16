@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/Walker-PI/edgex-gateway/gateway/agw_context"
+	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
 	consulapi "github.com/hashicorp/consul/api"
 )
 

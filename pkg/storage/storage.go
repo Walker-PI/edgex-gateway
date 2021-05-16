@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/Walker-PI/edgex-gateway/conf"
+	"github.com/Walker-PI/iot-gateway/conf"
 	"github.com/go-redis/redis/v8"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"

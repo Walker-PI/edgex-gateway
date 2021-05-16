@@ -3,7 +3,7 @@ package tools
 import (
 	"runtime/debug"
 
-	"github.com/Walker-PI/edgex-gateway/pkg/logger"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
 )
 
 // RecoverPanic ...

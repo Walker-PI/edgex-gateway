@@ -1,7 +1,7 @@
 package filter
 
 import (
-	"github.com/Walker-PI/edgex-gateway/gateway/agw_context"
+	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
 )
 
 // Hop-by-hop headers. These are removed when sent to the backend.

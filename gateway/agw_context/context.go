@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/Walker-PI/edgex-gateway/gateway/router"
+	"github.com/Walker-PI/iot-gateway/gateway/router"
 )
 
 type AGWContext struct {

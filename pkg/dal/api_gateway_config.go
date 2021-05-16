@@ -1,8 +1,8 @@
 package dal
 
 import (
-	"github.com/Walker-PI/edgex-gateway/pkg/logger"
-	"github.com/Walker-PI/edgex-gateway/pkg/storage"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
+	"github.com/Walker-PI/iot-gateway/pkg/storage"
 )
 
 // APIGatewayConfig ...

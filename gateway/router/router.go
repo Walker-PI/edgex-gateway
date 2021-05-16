@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Walker-PI/edgex-gateway/pkg/dal"
-	"github.com/Walker-PI/edgex-gateway/pkg/logger"
-	"github.com/Walker-PI/edgex-gateway/pkg/rate_limit"
-	"github.com/Walker-PI/edgex-gateway/pkg/storage"
-	"github.com/Walker-PI/edgex-gateway/pkg/tools"
+	"github.com/Walker-PI/iot-gateway/pkg/dal"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
+	"github.com/Walker-PI/iot-gateway/pkg/rate_limit"
+	"github.com/Walker-PI/iot-gateway/pkg/storage"
+	"github.com/Walker-PI/iot-gateway/pkg/tools"
 )
 
 var defaultRouter *Router

@@ -6,12 +6,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Walker-PI/edgex-gateway/gateway/discovery"
-	"github.com/Walker-PI/edgex-gateway/gateway/proxy"
-	"github.com/Walker-PI/edgex-gateway/gateway/router"
-	"github.com/Walker-PI/edgex-gateway/pkg/logger"
-	"github.com/Walker-PI/edgex-gateway/pkg/metric"
-	"github.com/Walker-PI/edgex-gateway/pkg/tools"
+	"github.com/Walker-PI/iot-gateway/gateway/discovery"
+	"github.com/Walker-PI/iot-gateway/gateway/proxy"
+	"github.com/Walker-PI/iot-gateway/gateway/router"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
+	"github.com/Walker-PI/iot-gateway/pkg/metric"
+	"github.com/Walker-PI/iot-gateway/pkg/tools"
 )
 
 func Dsipatch(w http.ResponseWriter, r *http.Request) {

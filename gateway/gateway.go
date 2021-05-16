@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Walker-PI/edgex-gateway/conf"
-	"github.com/Walker-PI/edgex-gateway/gateway/discovery"
-	"github.com/Walker-PI/edgex-gateway/gateway/dispatch"
-	"github.com/Walker-PI/edgex-gateway/gateway/router"
-	"github.com/Walker-PI/edgex-gateway/pkg/logger"
-	"github.com/Walker-PI/edgex-gateway/pkg/storage"
+	"github.com/Walker-PI/iot-gateway/conf"
+	"github.com/Walker-PI/iot-gateway/gateway/discovery"
+	"github.com/Walker-PI/iot-gateway/gateway/dispatch"
+	"github.com/Walker-PI/iot-gateway/gateway/router"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
+	"github.com/Walker-PI/iot-gateway/pkg/storage"
 )
 
 func Ping(w http.ResponseWriter, r *http.Request) {

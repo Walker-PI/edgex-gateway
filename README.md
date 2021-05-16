@@ -1,1 +1,1 @@
-# edgex-gateway
+# iot-gateway

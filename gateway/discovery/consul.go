@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/Walker-PI/edgex-gateway/conf"
-	"github.com/Walker-PI/edgex-gateway/gateway/agw_context"
-	"github.com/Walker-PI/edgex-gateway/gateway/lb"
-	"github.com/Walker-PI/edgex-gateway/pkg/logger"
+	"github.com/Walker-PI/iot-gateway/conf"
+	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
+	"github.com/Walker-PI/iot-gateway/gateway/lb"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
 	consulapi "github.com/hashicorp/consul/api"
 	uuid "github.com/satori/go.uuid"
 )
