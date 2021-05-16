@@ -3,7 +3,6 @@ package storage
 import (
 	"context"
 	"fmt"
-	"log"
 
 	"github.com/Walker-PI/edgex-gateway/conf"
 	"github.com/go-redis/redis/v8"
@@ -21,7 +20,7 @@ func InitStorage() {
 	initRedisClient()
 	initMysqlClient()
 
-	log.Println("Edgex-gateway storage initialized!")
+	fmt.Println("[Edgex-gateway] Storage initialized!")
 }
 
 func initRedisClient() {

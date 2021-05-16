@@ -2,7 +2,6 @@ package logger
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/Walker-PI/edgex-gateway/conf"
@@ -23,7 +22,7 @@ func InitLogs() {
 	}
 	setLogConfig()
 
-	log.Println("Edgex-gateway logger initialized!")
+	fmt.Println("[Edgex-gateway] Logger initialized!")
 }
 
 func setLogConfig() {

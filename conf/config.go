@@ -1,6 +1,7 @@
 package conf
 
 import (
+	"fmt"
 	"log"
 	"path/filepath"
 
@@ -35,9 +36,8 @@ type RedisConfig struct {
 }
 
 type Service struct {
-	Host          string
-	Port          int
-	ListenAddress string
+	Host string
+	Port int
 }
 
 type Database struct {
@@ -79,7 +79,7 @@ func LoadConfig(confFilePath string) {
 	mapTo("Server", Server, cfg)
 	mapTo("ConsulConfig", ConsulConf, cfg)
 
-	log.Println("Edgex-gateway config load finished!")
+	fmt.Println("[Edgex-gateway] Config load finished!")
 }
 
 func mapTo(section string, v interface{}, cfg *ini.File) {

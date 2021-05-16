@@ -30,7 +30,6 @@ type APIGatewayConfig struct {
 
 func GetAllAPIConfig() (apiConfigList []*APIGatewayConfig, err error) {
 	apiConfigList = make([]*APIGatewayConfig, 0)
-	// TODO: 分批获取
 	dbRes := storage.MysqlClient.Debug().Model(&APIGatewayConfig{}).Where("deleted = 0").Find(&apiConfigList)
 	if dbRes.Error != nil {
 		logger.Error("[GetAllAPIConfig] get all apiConfig failed: err=%v", dbRes.Error)

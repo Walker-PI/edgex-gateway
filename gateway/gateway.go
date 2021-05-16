@@ -2,8 +2,9 @@ package gateway
 
 import (
 	"flag"
-	"log"
+	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/Walker-PI/edgex-gateway/conf"
 	"github.com/Walker-PI/edgex-gateway/gateway/discovery"
@@ -32,8 +33,6 @@ func Start() {
 	discovery.EnableDiscovery()
 	http.HandleFunc("/ping", Ping)
 	http.HandleFunc("/", dispatch.Dsipatch)
-
-	log.Printf("Edgex-gateway started!\n")
-
-	http.ListenAndServe(conf.Server.ListenAddress, nil)
+	fmt.Printf("[Edgex-gateway] Listening and serving HTTP on :%d\n", conf.Server.Port)
+	http.ListenAndServe(":"+strconv.Itoa(conf.Server.Port), nil)
 }

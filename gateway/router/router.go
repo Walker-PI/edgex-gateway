@@ -3,7 +3,7 @@ package router
 import (
 	"context"
 	"errors"
-	"log"
+	"fmt"
 	"net"
 	"net/url"
 	"strings"
@@ -82,7 +82,7 @@ func InitRouter() {
 		}
 	}()
 
-	log.Println("Edgex-gateway Router initialized!")
+	fmt.Println("[Edgex-gateway] Router initialized!")
 }
 
 func DefaultRouter() *Router {
