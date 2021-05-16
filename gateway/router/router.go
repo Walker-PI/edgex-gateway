@@ -19,8 +19,8 @@ import (
 var defaultRouter *Router
 
 const (
-	DefaultTargetMode int32 = 0
-	ConsulTargetMode  int32 = 1
+	DefaultTargetMode int32 = 1
+	ConsulTargetMode  int32 = 2
 )
 
 type Router struct {
@@ -134,8 +134,8 @@ func packRouterInfo(apiConfig *dal.APIGatewayConfig) (*RouterInfo, error) {
 		routerInfo.Limiter = rate_limit.NewRateLimiter(int64(apiConfig.MaxQps))
 	}
 
-	if apiConfig.IpBlackList != "" {
-		ipStrs := strings.Split(apiConfig.IpBlackList, ",")
+	if apiConfig.IPBlackList != "" {
+		ipStrs := strings.Split(apiConfig.IPBlackList, ",")
 		for _, ipStr := range ipStrs {
 			netIP := net.ParseIP(ipStr)
 			if netIP == nil {
@@ -146,8 +146,8 @@ func packRouterInfo(apiConfig *dal.APIGatewayConfig) (*RouterInfo, error) {
 		}
 	}
 
-	if apiConfig.IpWhiteList != "" {
-		ipStrs := strings.Split(apiConfig.IpWhiteList, ",")
+	if apiConfig.IPWhiteList != "" {
+		ipStrs := strings.Split(apiConfig.IPWhiteList, ",")
 		for _, ipStr := range ipStrs {
 			netIP := net.ParseIP(ipStr)
 			if netIP == nil {

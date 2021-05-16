@@ -72,7 +72,7 @@ func (p *Proxy) DoProxy(director func(*http.Request), modifyResponse func(*http.
 	errorHandler func(http.ResponseWriter, *http.Request, error)) {
 
 	// 超时时间
-	timeout := 30 * time.Second
+	timeout := 5 * time.Second
 	if p.Ctx.RouteDetail.Target.Timeout > 0 {
 		timeout = p.Ctx.RouteDetail.Target.Timeout * time.Millisecond
 	}
