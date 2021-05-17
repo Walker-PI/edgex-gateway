@@ -1,7 +1,6 @@
 package filter
 
 import (
-	"bytes"
 	"net"
 	"net/http"
 
@@ -45,7 +44,7 @@ func (f *IPBlackFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
 	}
 
 	for _, blackIP := range ctx.RouteDetail.IPBlackList {
-		if bytes.Compare(blackIP, netIP) == 0 {
+		if net.IP.Equal(blackIP, netIP) {
 			return http.StatusForbidden, nil
 		}
 	}

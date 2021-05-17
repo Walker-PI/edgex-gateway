@@ -26,7 +26,7 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 		}
 		// 异步监控上报
 		metric.AsyncStatusEmit(proxy.StartTime, proxy.Ctx.OriginRequest, proxy.Ctx.Response)
-		logger.Info("[Dispatch-Response] cost=%dms, status=%v, resp=%+v", time.Now().Sub(proxy.StartTime).Milliseconds(),
+		logger.Info("[Dispatch-Response] cost=%dms, status=%v, resp=%+v", time.Since(proxy.StartTime).Milliseconds(),
 			proxy.Ctx.Response.StatusCode, proxy.Ctx.Response)
 	}()
 

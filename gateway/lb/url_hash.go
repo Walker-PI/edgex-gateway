@@ -22,6 +22,6 @@ func (urlHash *URLHashBalance) Select(serviceList []*consulapi.CatalogService) *
 	}
 	path := urlHash.Ctx.OriginRequest.URL.Path
 	h := fnv.New32a()
-	h.Write([]byte(path))
+	_, _ = h.Write([]byte(path))
 	return serviceList[h.Sum32()%uint32(length)]
 }

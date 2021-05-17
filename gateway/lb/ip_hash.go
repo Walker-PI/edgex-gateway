@@ -23,6 +23,6 @@ func (ipHash *IPHashBalance) Select(serviceList []*consulapi.CatalogService) *co
 	}
 	realIP := tools.RealIP(ipHash.Ctx.OriginRequest)
 	h := fnv.New32a()
-	h.Write([]byte(realIP))
+	_, _ = h.Write([]byte(realIP))
 	return serviceList[h.Sum32()%uint32(length)]
 }

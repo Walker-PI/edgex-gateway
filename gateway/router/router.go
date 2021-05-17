@@ -11,7 +11,7 @@ import (
 
 	"github.com/Walker-PI/iot-gateway/pkg/dal"
 	"github.com/Walker-PI/iot-gateway/pkg/logger"
-	"github.com/Walker-PI/iot-gateway/pkg/rate_limit"
+	"github.com/Walker-PI/iot-gateway/pkg/ratelimit"
 	"github.com/Walker-PI/iot-gateway/pkg/storage"
 	"github.com/Walker-PI/iot-gateway/pkg/tools"
 )
@@ -23,7 +23,7 @@ const (
 	ConsulTargetMode  int32 = 2
 )
 
-// Redis Sub channel
+// UpdateGatewayRoute ... Redis Sub channel
 const UpdateGatewayRoute = "update-gateway-route"
 
 type Router struct {
@@ -37,7 +37,7 @@ type RouterInfo struct {
 	Auth        string   // 鉴权类型
 	IPWhiteList []net.IP // IP白名单
 	IPBlackList []net.IP // IP黑名单
-	Limiter     *rate_limit.RateLimiter
+	Limiter     *ratelimit.RateLimiter
 }
 
 type target struct {
@@ -123,18 +123,19 @@ func newRouter() (router *Router, err error) {
 }
 
 func packRouterInfo(apiConfig *dal.APIGatewayConfig) (*RouterInfo, error) {
-	if apiConfig == nil {
-		return nil, errors.New("APIConfig is nil!")
-	}
 	var err error
+	if apiConfig == nil {
+		err = errors.New("APIConfig is nil!")
+		return nil, err
+	}
 	routerInfo := &RouterInfo{
 		Pattern:     apiConfig.Pattern,
 		Auth:        apiConfig.Auth,
 		IPWhiteList: make([]net.IP, 0),
 		IPBlackList: make([]net.IP, 0),
 	}
-	if apiConfig.MaxQps > 0 {
-		routerInfo.Limiter = rate_limit.NewRateLimiter(int64(apiConfig.MaxQps))
+	if apiConfig.MaxQPS > 0 {
+		routerInfo.Limiter = ratelimit.NewRateLimiter(int64(apiConfig.MaxQPS))
 	}
 
 	if apiConfig.IPBlackList != "" {
@@ -161,17 +162,17 @@ func packRouterInfo(apiConfig *dal.APIGatewayConfig) (*RouterInfo, error) {
 		}
 	}
 
-	// FIXME: 默认超时时间 5s
-	timeout := apiConfig.TargetTimeout
-	if timeout == 0 {
-		timeout = 5000
+	// 默认超时时间
+	timeout := 5 * time.Second
+	if apiConfig.TargetTimeout > 0 {
+		timeout = time.Duration(apiConfig.TargetTimeout) * time.Millisecond
 	}
 
 	switch apiConfig.TargetMode {
 	case DefaultTargetMode:
 		routerInfo.Target = &target{
 			Mode:    DefaultTargetMode,
-			Timeout: time.Duration(apiConfig.TargetTimeout) * time.Millisecond,
+			Timeout: timeout,
 			URL: &url.URL{
 				Host:   apiConfig.TargetHost,
 				Path:   apiConfig.TargetPath,

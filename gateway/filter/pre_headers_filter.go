@@ -25,7 +25,7 @@ func newPreHeadersFilter() Filter {
 }
 
 func (f *PreHeadersFilter) Name() FilterName {
-	return PreHeadersFilter_
+	return PreHeadersFilterBefore
 }
 
 func (f *PreHeadersFilter) Type() FilterType {
@@ -33,7 +33,7 @@ func (f *PreHeadersFilter) Type() FilterType {
 }
 
 func (f *PreHeadersFilter) Priority() int {
-	return priority[PreHeadersFilter_]
+	return priority[PreHeadersFilterBefore]
 }
 
 func (f *PreHeadersFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
