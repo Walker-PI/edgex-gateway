@@ -13,7 +13,7 @@ func newPostHeadersFilter() Filter {
 }
 
 func (f *PostHeadersFilter) Name() FilterName {
-	return PostHeadersFilter_
+	return PostHeadersFilterAfter
 }
 
 func (f *PostHeadersFilter) Type() FilterType {
@@ -21,7 +21,7 @@ func (f *PostHeadersFilter) Type() FilterType {
 }
 
 func (f *PostHeadersFilter) Priority() int {
-	return priority[PostHeadersFilter_]
+	return priority[PostHeadersFilterAfter]
 }
 
 func (f *PostHeadersFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {

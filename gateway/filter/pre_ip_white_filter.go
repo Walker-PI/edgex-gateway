@@ -1,7 +1,6 @@
 package filter
 
 import (
-	"bytes"
 	"net"
 	"net/http"
 
@@ -43,7 +42,7 @@ func (f *IPWhiteFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
 	}
 
 	for _, whiteIP := range ctx.RouteDetail.IPWhiteList {
-		if bytes.Compare(whiteIP, netIP) != 0 {
+		if net.IP.Equal(whiteIP, netIP) {
 			return f.baseFilter.Run(ctx)
 		}
 	}

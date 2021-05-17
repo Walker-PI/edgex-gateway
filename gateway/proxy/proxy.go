@@ -32,12 +32,12 @@ func (p *Proxy) initFilters() {
 	p.Filters = make([]filter.Filter, 0)
 	p.Filters = append(p.Filters,
 		filter.NewFilter(filter.PrePrepareFilter),
-		filter.NewFilter(filter.PreHeadersFilter_),
+		filter.NewFilter(filter.PreHeadersFilterBefore),
 		filter.NewFilter(filter.PreIPWhiteFilter),
 		filter.NewFilter(filter.PreIPBlackFilter),
 		filter.NewFilter(filter.PreAuthFilter),
 		filter.NewFilter(filter.PreRateLimitFilter),
-		filter.NewFilter(filter.PostHeadersFilter_),
+		filter.NewFilter(filter.PostHeadersFilterAfter),
 	)
 	sort.SliceStable(p.Filters, func(i, j int) bool {
 		return p.Filters[i].Priority() < p.Filters[j].Priority()

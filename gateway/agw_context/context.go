@@ -36,7 +36,7 @@ func copyRequest(req *http.Request) *http.Request {
 func (ctx *AGWContext) Get(key string) interface{} {
 	ctx.mutex.RLock()
 	defer ctx.mutex.RUnlock()
-	value, _ := ctx.data[key]
+	value := ctx.data[key]
 	return value
 }
 
