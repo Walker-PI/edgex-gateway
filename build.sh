@@ -5,7 +5,7 @@ RUN_NAME="iot-gateway"
 export GO111MODULE=on
 go mod download
 mkdir -p output/bin output/log
-chmod -R a+w output/
+chmod -R +w output/log
 
 cp script/bootstrap.sh output 2>/dev/null
 chmod +x output/bootstrap.sh

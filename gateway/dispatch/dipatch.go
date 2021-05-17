@@ -32,6 +32,7 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 
 	// Step1 匹配路由
 	match := proxy.MatchRoute()
+	logger.Info("[Dispatch] MatchRoute finished: match=%v", match)
 	if !match {
 		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, http.StatusNotFound)
 		return
@@ -39,6 +40,7 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 
 	// Step2 doPreFilters
 	statusCode, err := proxy.DoPreFilters()
+	logger.Info("[Dispatch] DoPreFilters finished: statusCode=%v, err=%v", statusCode, err)
 	if err != nil {
 		logger.Error("[Dispatch-DoPreFilters] failed: err=%v", err)
 		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, statusCode)
@@ -61,6 +63,7 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 	case router.ConsulTargetMode:
 		// 服务发现
 		service, err := discovery.GetInstance(proxy.Ctx, target.ServiceName, target.LoadBalance)
+		logger.Info("[Dispatch] GetInstance finished: service=%+v, err=%v", service, err)
 		if err != nil || service == nil {
 			logger.Error("[Dispatch] discovery.GetInstance falild: serviceName=%s, service=%+v, err=%v",
 				target.ServiceName, service, err)
@@ -79,6 +82,7 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 		targetPath = strings.TrimSuffix(target.URL.Path, "/") + "/" +
 			strings.TrimPrefix(strings.TrimPrefix(proxy.Ctx.OriginRequest.URL.Path, proxy.Ctx.RouteDetail.Pattern), "/")
 	}
+	logger.Info("[Dispatch] targetHost=%v, targetPath=%v", targetHost, targetPath)
 
 	// Step4 build Director
 	director := func(req *http.Request) {
@@ -109,6 +113,7 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 
 	// Step6 build ErrorHandler
 	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
+		logger.Error("[Proxy-ErrorHandler] reserve proxt failed: err=%v", err)
 		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, http.StatusBadGateway)
 	}
 
