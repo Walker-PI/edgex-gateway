@@ -28,7 +28,7 @@ func AddRecord(db *gorm.DB, record *APIRequestRecord) (err error) {
 	dbRes := db.Debug().Model(&APIRequestRecord{}).Create(record)
 	if dbRes.Error != nil {
 		err = dbRes.Error
-		logger.Error("[AddRecord] insert api record failed: record=%+v, err=%v", err)
+		logger.Error("[AddRecord] insert api record failed: record=%+v, err=%v", record, err)
 		return
 	}
 	return

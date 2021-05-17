@@ -3,34 +3,34 @@ package filter
 // Filter 优先级
 var priority = map[FilterName]int{
 	// Pre
-	PrePrepareFilter:   0,
-	PreIPBlackFilter:   1,
-	PreIPWhiteFilter:   2,
-	PreAuthFilter:      3,
-	PreRateLimitFilter: 4,
-	PreHeadersFilter_:  5,
+	PrePrepareFilter:       0,
+	PreIPBlackFilter:       1,
+	PreIPWhiteFilter:       2,
+	PreAuthFilter:          3,
+	PreRateLimitFilter:     4,
+	PreHeadersFilterBefore: 5,
 
 	// Post
-	PostHeadersFilter_: 100,
+	PostHeadersFilterAfter: 100,
 }
 
 type FilterName string
 
 const (
-	PrePrepareFilter   FilterName = "PREPARE"
-	PreAuthFilter      FilterName = "AUTH"
-	PreIPWhiteFilter   FilterName = "IP_WHITE"
-	PreIPBlackFilter   FilterName = "IP_BLACK"
-	PreHeadersFilter_  FilterName = "PRE_HEADERS"
-	PreRateLimitFilter FilterName = "RATE_LIMIT"
-	PostHeadersFilter_ FilterName = "POST_HEADERS"
+	PrePrepareFilter       FilterName = "PREPARE"
+	PreAuthFilter          FilterName = "AUTH"
+	PreIPWhiteFilter       FilterName = "IP_WHITE"
+	PreIPBlackFilter       FilterName = "IP_BLACK"
+	PreRateLimitFilter     FilterName = "RATE_LIMIT"
+	PreHeadersFilterBefore FilterName = "PRE_HEADERS"
+	PostHeadersFilterAfter FilterName = "POST_HEADERS"
 )
 
 func NewFilter(filterName FilterName) Filter {
 	switch filterName {
 	case PrePrepareFilter:
 		return newPrepareFilter()
-	case PreHeadersFilter_:
+	case PreHeadersFilterBefore:
 		return newPreHeadersFilter()
 	case PreIPBlackFilter:
 		return newIPBlackFilter()
@@ -40,7 +40,7 @@ func NewFilter(filterName FilterName) Filter {
 		return newAuthFilter()
 	case PreRateLimitFilter:
 		return newRateLimitFilter()
-	case PostHeadersFilter_:
+	case PostHeadersFilterAfter:
 		return newPostHeadersFilter()
 	default:
 		return nil

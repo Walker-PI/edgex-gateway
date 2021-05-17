@@ -19,7 +19,7 @@ type APIGatewayConfig struct {
 	TargetStripPrefix int32  `gorm:"column:target_strip_prefix" json:"target_strip_prefix"`
 	TargetLb          string `gorm:"column:target_lb" json:"target_lb"`
 	TargetTimeout     int64  `gorm:"column:target_timeout" json:"target_timeout"`
-	MaxQps            int32  `gorm:"column:max_qps" json:"max_qps"`
+	MaxQPS            int32  `gorm:"column:max_qps" json:"max_qps"`
 	Auth              string `gorm:"column:auth" json:"auth"`
 	IPWhiteList       string `gorm:"column:ip_white_list" json:"ip_white_list"`
 	IPBlackList       string `gorm:"column:ip_black_list" json:"ip_black_list"`

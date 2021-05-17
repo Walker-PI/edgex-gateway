@@ -15,7 +15,7 @@ import (
 )
 
 func Ping(w http.ResponseWriter, r *http.Request) {
-	w.Write([]byte("pong"))
+	_, _ = w.Write([]byte("pong"))
 }
 
 func Start() {
@@ -34,5 +34,5 @@ func Start() {
 	http.HandleFunc("/ping", Ping)
 	http.HandleFunc("/", dispatch.Dsipatch)
 	fmt.Printf("[Edgex-gateway] Listening and serving HTTP on :%d\n", conf.Server.Port)
-	http.ListenAndServe(":"+strconv.Itoa(conf.Server.Port), nil)
+	_ = http.ListenAndServe(":"+strconv.Itoa(conf.Server.Port), nil)
 }
