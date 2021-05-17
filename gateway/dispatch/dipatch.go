@@ -70,6 +70,9 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 		targetMode = router.ConsulTargetMode
 		targetHost = service.Address + ":" + strconv.Itoa(service.ServicePort)
 		targetPath = proxy.Ctx.OriginRequest.URL.Path
+		if target.StripPrefix {
+			targetPath = strings.TrimPrefix(proxy.Ctx.OriginRequest.URL.Path, proxy.Ctx.RouteDetail.Pattern)
+		}
 	default:
 		targetMode = router.DefaultTargetMode
 		targetHost = target.URL.Host

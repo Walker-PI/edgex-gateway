@@ -46,6 +46,7 @@ type target struct {
 	URL         *url.URL
 	Timeout     time.Duration // 超时时间
 	LoadBalance string        // 负载均衡
+	StripPrefix bool
 }
 
 type node struct {
@@ -177,12 +178,14 @@ func packRouterInfo(apiConfig *dal.APIGatewayConfig) (*RouterInfo, error) {
 				Path:   apiConfig.TargetPath,
 				Scheme: apiConfig.TargetScheme,
 			},
+			StripPrefix: apiConfig.TargetStripPrefix > 1,
 		}
 	case ConsulTargetMode:
 		routerInfo.Target = &target{
 			Mode:        apiConfig.TargetMode,
 			ServiceName: apiConfig.TargetServiceName,
 			LoadBalance: apiConfig.TargetLb,
+			StripPrefix: apiConfig.TargetStripPrefix > 1,
 		}
 	default:
 		err = errors.New("Unknown target mode!")
