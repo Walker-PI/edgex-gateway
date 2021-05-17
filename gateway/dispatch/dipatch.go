@@ -27,7 +27,7 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 		// 异步监控上报
 		metric.AsyncStatusEmit(proxy.StartTime, proxy.Ctx.OriginRequest, proxy.Ctx.Response)
 		logger.Info("[Dispatch-Response] cost=%dms, status=%v, resp=%+v", time.Now().Sub(proxy.StartTime).Milliseconds(),
-			proxy.Ctx.Response.StatusCode, tools.GetMarshalStr(proxy.Ctx.Response))
+			proxy.Ctx.Response.StatusCode, proxy.Ctx.Response)
 	}()
 
 	// Step1 匹配路由
@@ -41,7 +41,7 @@ func Dsipatch(w http.ResponseWriter, r *http.Request) {
 	statusCode, err := proxy.DoPreFilters()
 	if err != nil {
 		logger.Error("[Dispatch-DoPreFilters] failed: err=%v", err)
-		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, http.StatusBadGateway)
+		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, statusCode)
 		return
 	}
 	if statusCode != http.StatusOK {

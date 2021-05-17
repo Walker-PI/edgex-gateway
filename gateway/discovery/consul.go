@@ -31,9 +31,9 @@ func EnableDiscovery() {
 		ID:      conf.ConsulConf.ServiceName + "-" + uuid.NewV4().String(),
 		Name:    conf.ConsulConf.ServiceName,
 		Port:    conf.Server.Port,
-		Address: conf.Server.Host,
+		Address: conf.ConsulConf.ServiceHost,
 		Check: &consulapi.AgentServiceCheck{
-			HTTP:                           fmt.Sprintf("http://%s:%d/ping", conf.Server.Host, conf.Server.Port),
+			HTTP:                           fmt.Sprintf("http://%s:%d/ping", conf.ConsulConf.ServiceHost, conf.Server.Port),
 			Timeout:                        conf.ConsulConf.CheckTimeout,
 			Interval:                       conf.ConsulConf.CheckInterval,
 			DeregisterCriticalServiceAfter: "30s", // 故障检查失败30s后 consul自动将注册服务删除

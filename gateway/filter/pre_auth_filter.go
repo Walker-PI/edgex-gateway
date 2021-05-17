@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
 	"github.com/Walker-PI/iot-gateway/pkg/tools"
 	"github.com/dgrijalva/jwt-go"
 )
@@ -40,10 +41,15 @@ func (f *AuthFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
 	switch auth {
 	case AuthJWT:
 		tokenStr := ctx.ForwardRequest.Header.Get("Authorization")
+		if tokenStr == "" {
+			logger.Warn("[AuthFilter-Run] Authorization is not exsit")
+			return http.StatusUnauthorized, nil
+		}
 		token, err := jwt.ParseWithClaims(tokenStr, &tools.LoginClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte(tools.SecretKey), nil
 		})
 		if err != nil {
+			logger.Error("[AuthFilter-Run] ParseWithClaims failed: err=%v", err)
 			return http.StatusUnauthorized, err
 		}
 		if _, ok := token.Claims.(*tools.LoginClaims); !ok || !token.Valid {

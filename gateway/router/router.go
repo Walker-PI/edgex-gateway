@@ -23,6 +23,9 @@ const (
 	ConsulTargetMode  int32 = 2
 )
 
+// Redis Sub channel
+const UpdateGatewayRoute = "update-gateway-route"
+
 type Router struct {
 	root          map[string]*node
 	routerInfoMap map[string]*RouterInfo
@@ -64,7 +67,7 @@ func InitRouter() {
 			tools.RecoverPanic()
 		}()
 		ctx := context.Background()
-		pubSub := storage.RedisClient.Subscribe(ctx, "update_router")
+		pubSub := storage.RedisClient.Subscribe(ctx, UpdateGatewayRoute)
 		if _, err := pubSub.Receive(ctx); err != nil {
 			logger.Error("[Update-Router] Receive failed: err=%v", err)
 			return
@@ -89,13 +92,13 @@ func DefaultRouter() *Router {
 	return defaultRouter
 }
 
-func newRouter() (*Router, error) {
+func newRouter() (router *Router, err error) {
 	apiConfigList, err := dal.GetAllAPIConfig()
 	if err != nil {
-		return nil, nil
+		return
 	}
 
-	router := &Router{
+	router = &Router{
 		root:          make(map[string]*node),
 		routerInfoMap: make(map[string]*RouterInfo),
 	}
@@ -104,19 +107,19 @@ func newRouter() (*Router, error) {
 		if apiConfig == nil {
 			continue
 		}
-		routerInfo, err := packRouterInfo(apiConfig)
+		var routerInfo *RouterInfo
+		routerInfo, err = packRouterInfo(apiConfig)
 		if err != nil || routerInfo == nil {
 			logger.Error("[Router-newRouter] pack routerInfo failed: err=%v", err)
-			return nil, nil
+			return
 		}
 		err = router.addRoute(apiConfig.Method, routerInfo)
 		if err != nil {
 			logger.Error("[Router-newRouter] addRoute failed: err=%v", err)
-			return nil, nil
+			return
 		}
 	}
-
-	return &Router{}, nil
+	return
 }
 
 func packRouterInfo(apiConfig *dal.APIGatewayConfig) (*RouterInfo, error) {
@@ -156,6 +159,12 @@ func packRouterInfo(apiConfig *dal.APIGatewayConfig) (*RouterInfo, error) {
 			}
 			routerInfo.IPWhiteList = append(routerInfo.IPWhiteList, netIP)
 		}
+	}
+
+	// FIXME: 默认超时时间 5s
+	timeout := apiConfig.TargetTimeout
+	if timeout == 0 {
+		timeout = 5000
 	}
 
 	switch apiConfig.TargetMode {
@@ -216,6 +225,9 @@ func (r *Router) addRoute(method string, info *RouterInfo) error {
 }
 
 func (r *Router) Match(method string, path string) (*RouterInfo, map[string]string) {
+
+	logger.Info("[Router-Match] method=%v, path=%+v", method, path)
+
 	curNode, exsit := r.root[method]
 	if !exsit {
 		return nil, nil
@@ -230,7 +242,7 @@ func (r *Router) Match(method string, path string) (*RouterInfo, map[string]stri
 		for _, child := range curNode.children {
 			if child.part == part || child.isParam {
 				nextNode = child
-				key = key + "/" + part
+				key = key + "/" + child.part
 				if child.part[0] == ':' {
 					params[child.part[1:]] = part
 				}
@@ -238,10 +250,11 @@ func (r *Router) Match(method string, path string) (*RouterInfo, map[string]stri
 			}
 		}
 		if nextNode == nil {
-			return nil, nil
+			break
 		}
 		curNode = nextNode
 	}
+
 	routerInfo, exsit := r.routerInfoMap[key]
 	if !exsit {
 		return nil, nil

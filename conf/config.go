@@ -36,7 +36,6 @@ type RedisConfig struct {
 }
 
 type Service struct {
-	Host string
 	Port int
 }
 
@@ -50,6 +49,7 @@ type Database struct {
 }
 
 type ConsulConfig struct {
+	ServiceHost   string
 	ConsulAddress string
 	ServiceName   string
 	CheckTimeout  string

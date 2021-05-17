@@ -12,8 +12,8 @@ const (
 )
 
 type LoginClaims struct {
-	UserID int64      `json:"user_id,omitempty"`
-	Claims jwt.Claims `json:"claims,omitempty"`
+	UserID int64 `json:"user_id,omitempty"`
+	Claims jwt.StandardClaims
 }
 
 func (c LoginClaims) Valid() error {

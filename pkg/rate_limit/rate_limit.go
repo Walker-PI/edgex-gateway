@@ -19,3 +19,7 @@ func NewRateLimiter(capacity int64) *RateLimiter {
 func (l *RateLimiter) Do(count int64) bool {
 	return l.limiter.TakeAvailable(count) > 0
 }
+
+func (l *RateLimiter) Available() int64 {
+	return l.limiter.Available()
+}

@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
+	"github.com/Walker-PI/iot-gateway/pkg/logger"
 )
 
 type RateLimitFilter struct {
@@ -27,8 +28,15 @@ func (f *RateLimitFilter) Priority() int {
 }
 
 func (f *RateLimitFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
-	if ctx.RouteDetail.Limiter == nil || ctx.RouteDetail.Limiter.Do(1) {
+	if ctx.RouteDetail.Limiter == nil {
 		return f.baseFilter.Run(ctx)
 	}
-	return http.StatusServiceUnavailable, nil
+	beforeAvailable := ctx.RouteDetail.Limiter.Available()
+	if !ctx.RouteDetail.Limiter.Do(1) {
+		logger.Warn("[RateLimitFilter-Run] rate limit: before_available=%v", beforeAvailable)
+		return http.StatusServiceUnavailable, nil
+	}
+	logger.Info("[RateLimitFilter-Run] before_available=%v, after_available=%v", beforeAvailable,
+		ctx.RouteDetail.Limiter.Available())
+	return f.baseFilter.Run(ctx)
 }
