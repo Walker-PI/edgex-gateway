@@ -27,7 +27,7 @@ func (f *PostHeadersFilter) Priority() int {
 func (f *PostHeadersFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
 
 	for _, header := range hopHeaders {
-		ctx.ForwardRequest.Header.Del(header)
+		ctx.Response.Header.Del(header)
 	}
 	return f.baseFilter.Run(ctx)
 }

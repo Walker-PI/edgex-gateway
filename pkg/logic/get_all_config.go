@@ -1,11 +1,22 @@
-package dal
+package logic
 
 import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"strconv"
+
 	"github.com/Walker-PI/iot-gateway/pkg/logger"
 	"github.com/Walker-PI/iot-gateway/pkg/storage"
+	"github.com/go-redis/redis/v8"
 )
 
-// APIGatewayConfig ...
+// Redis key
+const (
+	AllAPIConfigID  = "all-api-config-id"
+	APIConfigKeyFmt = "api-config:api_id:%d"
+)
+
 type APIGatewayConfig struct {
 	ID                int64  `gorm:"column:id" json:"id"`
 	Pattern           string `gorm:"column:pattern" json:"pattern"`
@@ -30,12 +41,54 @@ type APIGatewayConfig struct {
 }
 
 func GetAllAPIConfig() (apiConfigList []*APIGatewayConfig, err error) {
-	apiConfigList = make([]*APIGatewayConfig, 0)
-	dbRes := storage.MysqlClient.Debug().Model(&APIGatewayConfig{}).Where("status = 1").Find(&apiConfigList)
-	if dbRes.Error != nil {
-		logger.Error("[GetAllAPIConfig] get all apiConfig failed: err=%v", dbRes.Error)
-		err = dbRes.Error
+	var (
+		ctx        = context.Background()
+		apiStrList []string
+	)
+
+	apiStrList, err = storage.RedisClient.SMembers(ctx, AllAPIConfigID).Result()
+	if err != nil {
+		logger.Error("[GetAllAPIConfig] get all api_id failed: err=%v", err)
 		return
+	}
+
+	redisPipeline := storage.RedisClient.Pipeline()
+	defer redisPipeline.Close()
+
+	cmds := make([]*redis.StringCmd, len(apiStrList))
+
+	for i, apiStr := range apiStrList {
+		apiID, innErr := strconv.ParseInt(apiStr, 10, 64)
+		if innErr != nil {
+			continue
+		}
+		key := fmt.Sprintf(APIConfigKeyFmt, apiID)
+		cmds[i] = redisPipeline.Get(ctx, key)
+	}
+	_, err = redisPipeline.Exec(ctx)
+	if err != nil {
+		logger.Error("[GetAllAPIConfig] redis pipeline exec failed: err=%v", err)
+		return
+	}
+
+	apiConfigList = make([]*APIGatewayConfig, 0)
+
+	for i, apiStr := range apiConfigList {
+		if cmds[i] == nil {
+			continue
+		}
+		data, innErr := cmds[i].Result()
+		if innErr != nil || data == "" {
+			logger.Error("[GetAllAPIConfig] api_id=%v, data=%v, err=%v", apiStr, data, innErr)
+			continue
+		}
+		var apiConfig = &APIGatewayConfig{}
+		innErr = json.Unmarshal([]byte(data), &apiConfig)
+		if innErr != nil {
+			logger.Error("[GetAllAPIConfig] json marshal failed: data=%v, err=%v", data, err)
+			continue
+		}
+		apiConfigList = append(apiConfigList, apiConfig)
 	}
 	return
 }

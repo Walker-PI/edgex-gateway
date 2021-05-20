@@ -9,8 +9,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Walker-PI/iot-gateway/pkg/dal"
 	"github.com/Walker-PI/iot-gateway/pkg/logger"
+	"github.com/Walker-PI/iot-gateway/pkg/logic"
 	"github.com/Walker-PI/iot-gateway/pkg/ratelimit"
 	"github.com/Walker-PI/iot-gateway/pkg/storage"
 	"github.com/Walker-PI/iot-gateway/pkg/tools"
@@ -94,7 +94,7 @@ func DefaultRouter() *Router {
 }
 
 func newRouter() (router *Router, err error) {
-	apiConfigList, err := dal.GetAllAPIConfig()
+	apiConfigList, err := logic.GetAllAPIConfig()
 	if err != nil {
 		return
 	}
@@ -123,7 +123,7 @@ func newRouter() (router *Router, err error) {
 	return
 }
 
-func packRouterInfo(apiConfig *dal.APIGatewayConfig) (*RouterInfo, error) {
+func packRouterInfo(apiConfig *logic.APIGatewayConfig) (*RouterInfo, error) {
 	var err error
 	if apiConfig == nil {
 		err = errors.New("APIConfig is nil!")
