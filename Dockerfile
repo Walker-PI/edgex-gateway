@@ -12,6 +12,6 @@ WORKDIR $GOPATH/src/github.com/Walker-PI/iot-gateway
 
 RUN sh build.sh
 
-EXPOSE 9922
+EXPOSE 9999
 
 ENTRYPOINT ["./output/bootstrap.sh"]

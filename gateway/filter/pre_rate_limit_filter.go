@@ -28,15 +28,15 @@ func (f *RateLimitFilter) Priority() int {
 }
 
 func (f *RateLimitFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
-	if ctx.RouteDetail.Limiter == nil {
+	if ctx.RouteInfo.Limiter == nil {
 		return f.baseFilter.Run(ctx)
 	}
-	beforeAvailable := ctx.RouteDetail.Limiter.Available()
-	if !ctx.RouteDetail.Limiter.Do(1) {
+	beforeAvailable := ctx.RouteInfo.Limiter.Available()
+	if !ctx.RouteInfo.Limiter.Do(1) {
 		logger.Warn("[RateLimitFilter-Run] rate limit: before_available=%v", beforeAvailable)
 		return http.StatusServiceUnavailable, nil
 	}
 	logger.Info("[RateLimitFilter-Run] before_available=%v, after_available=%v", beforeAvailable,
-		ctx.RouteDetail.Limiter.Available())
+		ctx.RouteInfo.Limiter.Available())
 	return f.baseFilter.Run(ctx)
 }

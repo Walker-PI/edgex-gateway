@@ -36,7 +36,7 @@ func (f *AuthFilter) Type() FilterType {
 }
 
 func (f *AuthFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
-	auth := ctx.RouteDetail.Auth
+	auth := ctx.RouteInfo.Auth
 	auth = strings.ToUpper(auth)
 	switch auth {
 	case AuthJWT:

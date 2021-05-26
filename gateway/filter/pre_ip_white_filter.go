@@ -28,20 +28,19 @@ func (f *IPWhiteFilter) Priority() int {
 }
 
 func (f *IPWhiteFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
-	if len(ctx.RouteDetail.IPWhiteList) == 0 {
+	if len(ctx.RouteInfo.IPWhiteList) == 0 {
 		return f.baseFilter.Run(ctx)
 	}
-	realIP, ok := ctx.Get("Real-IP").(string)
-	if !ok {
+	realIP := ctx.GetString("Real-IP")
+	if realIP == "" {
 		return http.StatusForbidden, nil
 	}
-
 	netIP := net.ParseIP(realIP)
 	if netIP == nil {
 		return http.StatusForbidden, nil
 	}
 
-	for _, whiteIP := range ctx.RouteDetail.IPWhiteList {
+	for _, whiteIP := range ctx.RouteInfo.IPWhiteList {
 		if net.IP.Equal(whiteIP, netIP) {
 			return f.baseFilter.Run(ctx)
 		}

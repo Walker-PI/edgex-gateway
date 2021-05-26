@@ -4,7 +4,7 @@ import (
 	"hash/fnv"
 
 	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
-	consulapi "github.com/hashicorp/consul/api"
+	"github.com/Walker-PI/iot-gateway/gateway/discovery/model"
 )
 
 type URLHashBalance struct {
@@ -15,7 +15,7 @@ func newURLHashBalance(ctx *agw_context.AGWContext) LoadBalance {
 	return &URLHashBalance{Ctx: ctx}
 }
 
-func (urlHash *URLHashBalance) Select(serviceList []*consulapi.CatalogService) *consulapi.CatalogService {
+func (urlHash *URLHashBalance) Select(serviceList []*model.Instance) *model.Instance {
 	length := len(serviceList)
 	if length == 0 {
 		return nil

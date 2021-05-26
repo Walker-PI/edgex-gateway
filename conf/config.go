@@ -18,6 +18,7 @@ var (
 	RedisConf  *RedisConfig
 	LogConf    *LogConfig
 	ConsulConf *ConsulConfig
+	EurekaConf *EurekaConfig
 )
 
 type LogConfig struct {
@@ -36,7 +37,8 @@ type RedisConfig struct {
 }
 
 type Service struct {
-	Port int
+	Port   int
+	Source string
 }
 
 type Database struct {
@@ -56,6 +58,12 @@ type ConsulConfig struct {
 	CheckInterval string
 }
 
+type EurekaConfig struct {
+	EurekaURL   string
+	LocalIP     string
+	ServiceName string
+}
+
 func LoadConfig(confFilePath string) {
 	if confFilePath == "" {
 		confFilePath = appINIFilePath
@@ -73,11 +81,13 @@ func LoadConfig(confFilePath string) {
 	RedisConf = new(RedisConfig)
 	Server = new(Service)
 	ConsulConf = new(ConsulConfig)
+	EurekaConf = new(EurekaConfig)
 	mapTo("Log", LogConf, cfg)
 	mapTo("Database", DBConf, cfg)
 	mapTo("Redis", RedisConf, cfg)
 	mapTo("Server", Server, cfg)
 	mapTo("ConsulConfig", ConsulConf, cfg)
+	mapTo("EurekaConfig", EurekaConf, cfg)
 
 	fmt.Println("[Edgex-gateway] Config load finished!")
 }

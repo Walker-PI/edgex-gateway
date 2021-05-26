@@ -10,6 +10,8 @@ var priority = map[FilterName]int{
 	PreRateLimitFilter:     4,
 	PreHeadersFilterBefore: 5,
 
+	RoutingFilterName: 50,
+
 	// Post
 	PostHeadersFilterAfter: 100,
 }
@@ -24,6 +26,7 @@ const (
 	PreRateLimitFilter     FilterName = "RATE_LIMIT"
 	PreHeadersFilterBefore FilterName = "PRE_HEADERS"
 	PostHeadersFilterAfter FilterName = "POST_HEADERS"
+	RoutingFilterName      FilterName = "ROUTING"
 )
 
 func NewFilter(filterName FilterName) Filter {
@@ -40,6 +43,8 @@ func NewFilter(filterName FilterName) Filter {
 		return newAuthFilter()
 	case PreRateLimitFilter:
 		return newRateLimitFilter()
+	case RoutingFilterName:
+		return newRoutingFilter()
 	case PostHeadersFilterAfter:
 		return newPostHeadersFilter()
 	default:

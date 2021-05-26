@@ -4,7 +4,7 @@ import (
 	"sync/atomic"
 
 	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
-	consulapi "github.com/hashicorp/consul/api"
+	"github.com/Walker-PI/iot-gateway/gateway/discovery/model"
 )
 
 type RRBalance struct {
@@ -19,7 +19,7 @@ func newRRBalance(ctx *agw_context.AGWContext) LoadBalance {
 	}
 }
 
-func (rr *RRBalance) Select(serviceList []*consulapi.CatalogService) *consulapi.CatalogService {
+func (rr *RRBalance) Select(serviceList []*model.Instance) *model.Instance {
 	length := int64(len(serviceList))
 	if length == 0 {
 		return nil

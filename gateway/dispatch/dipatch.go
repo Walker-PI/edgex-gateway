@@ -1,122 +1,92 @@
 package dispatch
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
-	"strings"
 	"time"
 
-	"github.com/Walker-PI/iot-gateway/gateway/discovery"
+	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
 	"github.com/Walker-PI/iot-gateway/gateway/proxy"
-	"github.com/Walker-PI/iot-gateway/gateway/router"
 	"github.com/Walker-PI/iot-gateway/pkg/logger"
 	"github.com/Walker-PI/iot-gateway/pkg/metric"
 	"github.com/Walker-PI/iot-gateway/pkg/tools"
+	"github.com/afex/hystrix-go/hystrix"
 )
 
-func Dsipatch(w http.ResponseWriter, r *http.Request) {
+func (d *Dispatcher) Dispatch(ctx *agw_context.AGWContext) {
 
-	logger.Info("[Dispatch-Request] url=%v, body=%+v", tools.GetMarshalStr(r.URL), tools.GetBodyStr(r))
-
-	proxy := proxy.NewProxy(w, r)
+	logger.Info("[Dispatch-Request] url=%v, body=%+v", tools.GetMarshalStr(ctx.ForwardRequest.URL),
+		tools.GetBodyStr(ctx.ForwardRequest))
 
 	defer func() {
-		if proxy.Ctx.Response == nil {
-			proxy.ErrorHandle(proxy.Ctx.ResponseWriter, http.StatusBadGateway)
+		if ctx.Response == nil {
+			ErrorHandle(ctx, http.StatusBadGateway)
 		}
-		// 异步监控上报
-		metric.AsyncStatusEmit(proxy.StartTime, proxy.Ctx.OriginRequest, proxy.Ctx.Response)
-		logger.Info("[Dispatch-Response] cost=%dms, status=%v, resp=%+v", time.Since(proxy.StartTime).Milliseconds(),
-			proxy.Ctx.Response.StatusCode, proxy.Ctx.Response)
+		// Step6 请求记录上报
+		metric.AsyncStatusEmit(ctx)
+		logger.Info("[Dispatch-Response] cost=%dms, status=%v, resp=%+v", time.Since(ctx.StartTime).Milliseconds(),
+			ctx.Response.StatusCode, ctx.Response)
 	}()
 
-	// Step1 匹配路由
-	match := proxy.MatchRoute()
-	logger.Info("[Dispatch] MatchRoute finished: match=%v", match)
-	if !match {
-		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, http.StatusNotFound)
-		return
-	}
-
-	// Step2 doPreFilters
-	statusCode, err := proxy.DoPreFilters()
+	// Step1. 执行pre 过滤器
+	statusCode, err := d.DoPreFilters(ctx)
 	logger.Info("[Dispatch] DoPreFilters finished: statusCode=%v, err=%v", statusCode, err)
-	if err != nil {
+	if err != nil || statusCode != http.StatusOK {
 		logger.Error("[Dispatch-DoPreFilters] failed: err=%v", err)
-		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, statusCode)
-		return
-	}
-	if statusCode != http.StatusOK {
-		logger.Warn("[Dispatch-DoPreFilters] emerge execption: statusCode=%v", statusCode)
-		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, statusCode)
+		ErrorHandle(ctx, statusCode)
 		return
 	}
 
-	// Step3 服务发现
-	var (
-		targetMode int32
-		targetHost string
-		targetPath string
-		target     = proxy.Ctx.RouteDetail.Target
-	)
-	switch target.Mode {
-	case router.ConsulTargetMode:
-		// 服务发现
-		service, err := discovery.GetInstance(proxy.Ctx, target.ServiceName, target.LoadBalance)
-		logger.Info("[Dispatch] GetInstance finished: service=%+v, err=%v", service, err)
-		if err != nil || service == nil {
-			logger.Error("[Dispatch] discovery.GetInstance falild: serviceName=%s, service=%+v, err=%v",
-				target.ServiceName, service, err)
-			proxy.ErrorHandle(proxy.Ctx.ResponseWriter, http.StatusNotFound)
-			return
-		}
-		targetMode = router.ConsulTargetMode
-		targetHost = service.ServiceAddress + ":" + strconv.Itoa(service.ServicePort)
-		targetPath = proxy.Ctx.OriginRequest.URL.Path
-		if target.StripPrefix {
-			targetPath = strings.TrimPrefix(proxy.Ctx.OriginRequest.URL.Path, proxy.Ctx.RouteDetail.Pattern)
-		}
-	default:
-		targetMode = router.DefaultTargetMode
-		targetHost = target.URL.Host
-		targetPath = strings.TrimSuffix(target.URL.Path, "/") + "/" +
-			strings.TrimPrefix(strings.TrimPrefix(proxy.Ctx.OriginRequest.URL.Path, proxy.Ctx.RouteDetail.Pattern), "/")
-	}
-	logger.Info("[Dispatch] targetHost=%v, targetPath=%v", targetHost, targetPath)
-
-	// Step4 build Director
-	director := func(req *http.Request) {
-		req.Host = targetHost
-		req.URL.Scheme = "http"
-		if targetMode == router.DefaultTargetMode {
-			req.URL.Scheme = target.URL.Scheme
-		}
-		req.URL.Host = targetHost
-		req.URL.Path = targetPath
-		if proxy.Ctx.ForwardRequest.URL.RawQuery == "" || req.URL.RawQuery == "" {
-			req.URL.RawQuery = proxy.Ctx.ForwardRequest.URL.RawQuery + req.URL.RawQuery
-		} else {
-			req.URL.RawQuery = proxy.Ctx.ForwardRequest.URL.RawQuery + "&" + req.URL.RawQuery
-		}
+	// Step2. 执行routing 过滤器
+	statusCode, err = d.DoRoutingFilter(ctx)
+	logger.Info("[Dispatch] DoRoutingFilter finished: statusCode=%v, err=%v", statusCode, err)
+	if err != nil || statusCode != http.StatusOK {
+		logger.Error("[Dispatch-DoRoutingFilter] failed: err=%v", err)
+		ErrorHandle(ctx, statusCode)
+		return
 	}
 
-	// Step5 build ModifyResponse & doPostFilters
-	modifyResponse := func(resp *http.Response) error {
-		proxy.Ctx.Response = resp
-		_, err := proxy.DoPostFilters()
+	// Step3. 反向代理构建
+	proxy := proxy.NewProxy()
+	proxy.BuildProxy(ctx)
+
+	// Step4. 执行post过滤器
+	proxy.SetModifyResponse(func(resp *http.Response) error {
+		ctx.Response = resp
+		_, err := d.DoPostFilters(ctx)
 		if err != nil {
 			logger.Info("[Dispatch-DoPostFilters] failed: err=%v", err)
 			return err
 		}
 		return nil
-	}
+	})
 
-	// Step6 build ErrorHandler
-	errorHandler := func(w http.ResponseWriter, r *http.Request, err error) {
-		logger.Error("[Proxy-ErrorHandler] reserve proxt failed: err=%v", err)
-		proxy.ErrorHandle(proxy.Ctx.ResponseWriter, http.StatusBadGateway)
-	}
+	// Step5. 执行error处理
+	proxy.SetErrorHandler(func(w http.ResponseWriter, r *http.Request, err error) {
+		if err != nil {
+			ErrorHandle(ctx, http.StatusBadGateway)
+		}
+	})
 
-	// Step7 doProxy
-	proxy.DoProxy(director, modifyResponse, errorHandler)
+	// Step6 熔断&反向代理
+	timeout := 3 * time.Second
+	if ctx.RouteInfo.Target.Timeout > 0 {
+		timeout = ctx.RouteInfo.Target.Timeout * time.Millisecond
+	}
+	command := fmt.Sprintf("%s-%s", ctx.ForwardRequest.Method, ctx.RouteInfo.Pattern)
+	hystrix.ConfigureCommand(command, hystrix.CommandConfig{
+		Timeout:                int(timeout / time.Millisecond), // 超时时间
+		MaxConcurrentRequests:  100,                             // 最大并发量
+		SleepWindow:            int(time.Second * 5),            // 熔断之后，等待尝试时间
+		RequestVolumeThreshold: 30,                              // 10秒内请求数量，达到这个值开始判断是否熔断
+		ErrorPercentThreshold:  50,                              // 错误百分比
+	})
+	err = hystrix.Do(command, func() error {
+		err = proxy.ReverseProxy(ctx)
+		return err
+	}, nil)
+	if err != nil {
+		logger.Error("[Dispatch] ReverseProxy failed: err=%v", err)
+		return
+	}
 }

@@ -9,8 +9,9 @@ import (
 type FilterType string
 
 const (
-	PreFilter  = "PRE"
-	PostFilter = "POST"
+	PreFilter   = "PRE"
+	PostFilter  = "POST"
+	RouteFilter = "ROUTING"
 )
 
 type Filter interface {

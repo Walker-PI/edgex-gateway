@@ -4,6 +4,7 @@ go 1.15
 
 require (
 	github.com/SimonWang00/goeureka v1.0.2 // indirect
+	github.com/afex/hystrix-go v0.0.0-20180502004556-fa1af6a1f4f5 // indirect
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-ini/ini v1.62.0
 	github.com/go-redis/redis/v8 v8.8.2

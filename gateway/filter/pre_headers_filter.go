@@ -37,7 +37,7 @@ func (f *PreHeadersFilter) Priority() int {
 }
 
 func (f *PreHeadersFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
-	realIP := ctx.Get("Real-IP").(string)
+	realIP := ctx.GetString("Real-IP")
 	ctx.ForwardRequest.Header.Set("X-Forwarded-For", realIP)
 	ctx.ForwardRequest.Header.Set("X-Real-IP", realIP)
 	for _, header := range hopHeaders {

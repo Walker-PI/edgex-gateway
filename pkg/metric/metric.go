@@ -1,39 +1,32 @@
 package metric
 
 import (
-	"net/http"
 	"time"
 
+	"github.com/Walker-PI/iot-gateway/conf"
+	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
 	"github.com/Walker-PI/iot-gateway/pkg/dal"
 	"github.com/Walker-PI/iot-gateway/pkg/logger"
 	"github.com/Walker-PI/iot-gateway/pkg/storage"
 	"github.com/Walker-PI/iot-gateway/pkg/tools"
 )
 
-// const (
-// 	resultFail      = "fail"
-// 	resultSucceed   = "succeed"
-// 	resultRateLimit = "rateLimit"
-// 	resultReject    = "reject"
-// )
-
 // AsyncStatusEmit 异步Status记录
-func AsyncStatusEmit(startTime time.Time, req *http.Request, resp *http.Response) {
+func AsyncStatusEmit(ctx *agw_context.AGWContext) {
 	go func() {
 		defer func() {
 			tools.RecoverPanic()
 		}()
 		endTime := time.Now()
-		record := &dal.APIRequestRecord{
-			Path:        req.URL.Path,
-			Method:      req.Method,
-			CostTime:    endTime.Sub(startTime).Milliseconds(),
-			StatusCode:  resp.StatusCode,
-			StartTime:   startTime,
-			EndTime:     endTime,
-			CreatedTime: time.Now(),
+		record := &dal.RequestRecord{
+			Source:     conf.Server.Source,
+			GroupName:  ctx.RouteInfo.GroupName,
+			Path:       ctx.RouteInfo.Pattern,
+			Method:     ctx.ForwardRequest.Method,
+			StatusCode: ctx.Response.StatusCode,
+			CostTime:   endTime.Sub(ctx.StartTime).Milliseconds(),
 		}
-		if err := dal.AddRecord(storage.MysqlClient, record); err != nil {
+		if err := dal.AddRequestRecord(storage.MysqlClient, record); err != nil {
 			logger.Error("[AsyncStatusEmit] add record to DB failed: record=%+v, err=%v", *record, err)
 			return
 		}

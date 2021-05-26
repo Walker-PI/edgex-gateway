@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/Walker-PI/iot-gateway/gateway/agw_context"
-	consulapi "github.com/hashicorp/consul/api"
+	"github.com/Walker-PI/iot-gateway/gateway/discovery/model"
 )
 
 const (
@@ -16,7 +16,7 @@ const (
 )
 
 type LoadBalance interface {
-	Select([]*consulapi.CatalogService) *consulapi.CatalogService
+	Select([]*model.Instance) *model.Instance
 }
 
 func NewLoadBalance(ctx *agw_context.AGWContext, lbType string) (LoadBalance, error) {

@@ -29,12 +29,12 @@ func (f *IPBlackFilter) Priority() int {
 
 func (f *IPBlackFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
 
-	if len(ctx.RouteDetail.IPBlackList) == 0 {
+	if len(ctx.RouteInfo.IPBlackList) == 0 {
 		return f.baseFilter.Run(ctx)
 	}
 
-	realIP, ok := ctx.Get("Real-IP").(string)
-	if !ok {
+	realIP := ctx.GetString("Real-IP")
+	if realIP == "" {
 		return http.StatusForbidden, nil
 	}
 
@@ -43,7 +43,7 @@ func (f *IPBlackFilter) Run(ctx *agw_context.AGWContext) (Code int, err error) {
 		return http.StatusForbidden, nil
 	}
 
-	for _, blackIP := range ctx.RouteDetail.IPBlackList {
+	for _, blackIP := range ctx.RouteInfo.IPBlackList {
 		if net.IP.Equal(blackIP, netIP) {
 			return http.StatusForbidden, nil
 		}

@@ -1,0 +1,12 @@
+version: '3.7'
+
+services:            
+    iot-gateway:
+        build:
+            context: ./
+            dockerfile: Dockerfile
+        image: iot-gateway:latest
+        container_name: iot-gateway
+        ports:
+            - 9999:9999/tcp
+        restart: always
