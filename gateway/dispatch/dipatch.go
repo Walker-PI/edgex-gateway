@@ -22,11 +22,31 @@ func (d *Dispatcher) Dispatch(ctx *agw_context.AGWContext) {
 		if ctx.Response == nil {
 			ErrorHandle(ctx, http.StatusBadGateway)
 		}
-		// Step6 请求记录上报
+		// 请求记录上报
 		metric.AsyncStatusEmit(ctx)
 		logger.Info("[Dispatch-Response] cost=%dms, status=%v, resp=%+v", time.Since(ctx.StartTime).Milliseconds(),
 			ctx.Response.StatusCode, ctx.Response)
 	}()
+
+	// 网关超时处理
+	done := make(chan bool, 1)
+	go func() {
+		defer func() {
+			tools.RecoverPanic()
+		}()
+		d.Process(ctx)
+		done <- true
+	}()
+	select {
+	case <-done:
+		return
+	case <-time.After(5 * time.Second):
+		ErrorHandle(ctx, http.StatusGatewayTimeout)
+		return
+	}
+}
+
+func (d *Dispatcher) Process(ctx *agw_context.AGWContext) {
 
 	// Step1. 执行pre 过滤器
 	statusCode, err := d.DoPreFilters(ctx)
